@@ -45,6 +45,7 @@ supplied by the implementation: `lambda`, `macro`, `keyword`, `quote`, `car`,
 `cdr`, `cons`, `set`, `do`.
 
 The implementation MUST evaluate the program with the following rules:
+
   1. Any `list` that contains a first element evaluating to the initial environment's
      definition of `lambda`, `quote`, or `keyword` MUST be evaluated to
      itself as-is.
@@ -90,6 +91,7 @@ the ABNF definition `*1(%x30-39)`, `print`.
 
 If the implementation defines the above atoms, then it MUST also add the
 following rules to its evaluation algorithm:
+
   8. TODO: write more rules
 
 The following atoms MAY be predefined contained within the initial environment
@@ -97,6 +99,7 @@ supplied by the implementation: `eval`.
 
 If the implementation defines the above atoms, then it MUST also add the
 following rules to its evaluation algorithm:
+
   9. TODO: write more rules
 
 The implementation MAY define any additional atoms as it sees fit, as long as
