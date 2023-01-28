@@ -11,7 +11,6 @@ typedef struct env env;
 
 // memory allocation
 [[gnu::always_inline]] static inline void *alloc(uint_fast8_t);
-[[gnu::always_inline]] [[gnu::nonnull]] static inline void memcpy(void *, void *, uint_fast8_t);
 
 // read
 [[gnu::nonnull(1)]] static object *read(char **);
@@ -26,9 +25,9 @@ typedef struct env env;
 // misc
 [[gnu::noinline]] void main(void);
 [[gnu::always_inline]] [[gnu::nonnull(1, 2)]] static inline bool strequ(char *, char *);
-[[gnu::always_inline]] [[gnu::nonnull(1, 2)]] static inline bool memcmp(char *, char *, uint_fast8_t);
+[[gnu::always_inline]] [[gnu::nonnull(1, 2)]] static inline bool memequ(char *, char *, uint_fast8_t);
 [[gnu::always_inline]] [[gnu::nonnull(1)]] static inline uint_fast8_t strlen(char *);
-static char *memptr = (char *) 0x500;
+[[gnu::always_inline]] [[gnu::nonnull(1, 2)]] static inline void memcpy(void *, void *, uint_fast8_t);
 
 struct object {
   union {
@@ -54,16 +53,17 @@ struct env {
   object *val;
 };
 
-static env zilch = {
+static env nil = {
   .cdr = NULL,
   .key = "",
   .val = NULL
 };
 
-static char *ptr = (char *) 0x7E00;
+static char *memptr = (char *) 0x0500; // address where heap starts
+static char *ptr = (char *) 0x7E00; // address where LISP code starts
 
 void main(void) {
-  eval(read(&ptr), &zilch);
+  eval(read(&ptr), &nil);
 }
 
 object *read(char **ptr) {
@@ -143,17 +143,28 @@ object *read_lst(char **ptr) {
 }
 
 void *alloc(uint_fast8_t size) {
-  // simple bump allocator.
-  // rewritten with inline ASM because it saved 36 bytes
+  /*
+  void *res;
+  res = memptr;
+  memptr += size;
+  return res;
+  */
+  
+  // saves 36 bytes
   void *res;
   __asm__("mov %0, %1 \n add %2, %0" : "+m" (memptr), "=r" (res) : "r" (size));
-  // res = memptr;
-  // memptr += size;
   return res;
 }
 
 void memcpy(void *dst, void *src, uint_fast8_t count) {
-  // rewritten with inline ASM because it saved 35 bytes
+  /*
+  do {
+    *dst++ = *src++;
+    count--;
+  } while (count > 0);
+  */
+  
+  // saves 35 bytes
   __asm__ volatile("rep movsb\n" :: "D" (dst), "S" (src), "c" (count));
 }
 
@@ -195,23 +206,34 @@ object *eval_lst(list *lst, env *e) {
     }
   }
   cdrptr->cdr = NULL;
+  // inline asm is used here to prevent clang
+  // from eliminating the whole function
   __asm__ volatile ("" : "=rmi" (car), "=rmi" (cdr));
-  // if (car->type == OBJATM && strequ(car->data.atm, "int")) {
-  //   object *res = alloc(sizeof(object));
-  //   res->type = OBJLST;
-  //   res->data.lst = cdr;
-  //   return res;
-  // }
+  /*
+  if (car->type == OBJATM && strequ(car->data.atm, "int")) {
+    object *res = alloc(sizeof(object));
+    res->type = OBJLST;
+    res->data.lst = cdr;
+    return res;
+  }
+  */
   return NULL;
 }
 
 bool strequ(char *lhs, char *rhs) {
-  return memcmp(lhs, rhs, strlen(lhs));
+  return memequ(lhs, rhs, strlen(lhs));
 }
 
 uint_fast8_t strlen(char *str) {
+  /*
   char *bgn = str;
-  // saves the last byte
+  while (*str)
+    str++;
+  return str - bgn;
+  */
+  
+  // saves 1 byte
+  char *bgn = str;
   __asm__ (
     "xor %%ax, %%ax\n"
     "repne scasb"
@@ -222,7 +244,17 @@ uint_fast8_t strlen(char *str) {
   return str - bgn;
 }
 
-bool memcmp(char *lhs, char *rhs, uint_fast8_t len) {
+bool memequ(char *lhs, char *rhs, uint_fast8_t len) {
+  /*
+  while (len > 0) {
+    if (*lhs != *rhs)
+      return false;
+    len--;
+  }
+  return true;
+  */
+  
+  // saves 11 bytes
   bool res = 0;
   __asm__ (
     "repe cmpsb\n"
