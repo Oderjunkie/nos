@@ -28,7 +28,7 @@ dbg :
 	objdump -D -mi386 -Mintel,addr16,data16 boot.o
 
 clean :
-	rm boot.bin boot.bc boot.ll boot.o boot.s 
+	rm boot.bin boot-final.o boot.ll boot.o boot.s 
 
 emu : os
 	@qemu-system-x86_64 -drive format=raw,file=os.iso -full-screen -no-reboot
