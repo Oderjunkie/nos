@@ -5,23 +5,23 @@
 	.type	main,@function
 main:                                   # @main
 # %bb.0:
-	pushl	%ebx
-	subl	$8, %esp
-	movzwl	ptr, %ebx
-	movw	$516, %ax                       # imm = 0x204
-	movw	$2, %cx
+	push %cx
+	sub $8, %sp
+	mov ptr, %cx
+	mov $516, %ax                       # imm = 0x204
+	mov $2, %bx
 	#APP
-	movw	$516, %ax                       # imm = 0x204
-	movw	$32256, %bx                     # imm = 0x7E00
-	movw	$2, %cx
-	xorb	%dl, %dl
-	int	$19
+	mov $516, %ax                       # imm = 0x204
+	mov $32256, %cx                     # imm = 0x7E00
+	mov $2, %bx
+	xor %dl, %dl
+	int $19
 
 	#NO_APP
-	calll	read
-	movl	%eax, %ecx
-	addl	$8, %esp
-	popl	%ebx
+	call read
+	mov %ax, %bx
+	add $8, %sp
+	pop %cx
 	jmp	eval                            # TAILCALL
 .Lfunc_end0:
 	.size	main, .Lfunc_end0-main
@@ -29,79 +29,79 @@ main:                                   # @main
 	.type	eval,@function                  # -- Begin function eval
 eval:                                   # @eval
 # %bb.0:
-	pushl	%ebx
-	pushl	%edi
-	pushl	%esi
-	subl	$16, %esp
-	cmpb	$0, 4(%ecx)
-	je	.LBB1_1
+	push %cx
+	push %di
+	push %si
+	sub $16, %sp
+	cmpb $0, 4(%bx)
+	je .LBB1_1
 # %bb.5:
-	movl	(%ecx), %esi
-	movl	4(%esi), %ecx
-	calll	eval
-	andl	$0, 12(%esp)
-	andl	$0, 8(%esp)
-	movb	$8, %bl
-	movl	(%esi), %esi
+	mov (%bx), %si
+	mov 4(%si), %bx
+	call eval
+	andw $0, 12(%esp)
+	andw $0, 8(%esp)
+	mov $8, %bl
+	mov (%si), %si
 	#APP
-	movl	memptr, %edi
-	addb	%bl, memptr
+	mov memptr, %di
+	add %bl, memptr
 	#NO_APP
-	movl	%edi, 8(%esp)
+	mov %di, 8(%esp)
 .LBB1_6:                                # =>This Inner Loop Header: Depth=1
-	movl	4(%esi), %ecx
-	calll	eval
-	andl	$0, 4(%edi)
-	cmpl	$0, (%esi)
-	je	.LBB1_8
+	mov 4(%si), %bx
+	call eval
+	andl $0, 4(%di)
+	cmpl $0, (%si)
+	je .LBB1_8
 # %bb.7:                                #   in Loop: Header=BB1_6 Depth=1
 	#APP
-	movl	memptr, %eax
-	addb	%bl, memptr
+	mov memptr, %ax
+	add %bl, memptr
 	#NO_APP
-	movl	%eax, (%edi)
-	movl	%eax, %edi
-	movl	(%esi), %esi
+	mov %ax, (%di)
+	mov %ax, %di
+	mov (%si), %si
 	jmp	.LBB1_6
 .LBB1_8:
-	andl	$0, (%edi)
+	andw $0, (%di)
 	#APP
 	#NO_APP
 	jmp	.LBB1_9
 .LBB1_1:
-	movl	(%ecx), %edx
-	movl	%edx, %esi
+	mov (%bx), %dx
+	mov %dx, %si
 	#APP
-	xorw	%ax, %ax
+	xor	%ax, %ax
 	repne		scasb	%es:(%di), %al
 	#NO_APP
-	movl	%esi, %ecx
-	movl	$nil, %eax
-	subl	%edx, %ecx
+	mov %si, %bx
+	mov $nil, %ax
+	sub %dx, %bx
 .LBB1_2:                                # =>This Inner Loop Header: Depth=1
-	movl	4(%eax), %edi
-	movl	%edx, %esi
+	mov 4(%eax), %di
+	mov %dx, %si
 	#APP
-	rep		cmpsb	%es:(%di), (%si)
+	rep cmpsb	%es:(%di), (%si)
 
 	#NO_APP
 	jne	.LBB1_4
 # %bb.3:                                #   in Loop: Header=BB1_2 Depth=1
-	movl	(%eax), %eax
-	testl	%eax, %eax
-	jne	.LBB1_2
+	mov (%eax), %eax
+	test %ax, %ax
+	jne .LBB1_2
 .LBB1_9:
-	addl	$16, %esp
-	popl	%esi
-	popl	%edi
-	popl	%ebx
-	retl
+	add $16, %sp
+	pop %si
+	pop %di
+	pop %cx
+	ret
 .LBB1_4:
-	movl	8(%eax), %ecx
-	addl	$16, %esp
-	popl	%esi
-	popl	%edi
-	popl	%ebx
+	mov 8(%eax), %bx
+	add $16, %sp
+	pop %si
+	pop %di
+	pop %cx
 	jmp	eval                            # TAILCALL
 .Lfunc_end1:
 	.size	eval, .Lfunc_end1-eval
@@ -109,13 +109,13 @@ eval:                                   # @eval
 	.type	read,@function                  # -- Begin function read
 read:                                   # @read
 # %bb.0:
-	pushl	%ebx
-	pushl	%edi
-	pushl	%esi
-	movl	ptr, %esi
+	push %cx
+	push %di
+	push %si
+	mov ptr, %si
 .LBB2_1:                                # =>This Loop Header: Depth=1
                                         #     Child Loop BB2_18 Depth 2
-	movb	(%esi), %al
+	movb	(%si), %al
 	cmpb	$10, %al
 	je	.LBB2_20
 # %bb.2:                                #   in Loop: Header=BB2_1 Depth=1
@@ -126,14 +126,14 @@ read:                                   # @read
 	jne	.LBB2_4
 .LBB2_18:                               #   Parent Loop BB2_1 Depth=1
                                         # =>  This Inner Loop Header: Depth=2
-	cmpb	$10, 1(%esi)
-	leal	1(%esi), %esi
+	cmpb $10, 1(%si)
+	lea 1(%si), %si
 	jne	.LBB2_18
 # %bb.19:                               #   in Loop: Header=BB2_1 Depth=1
-	movl	%esi, ptr
+	mov %si, ptr
 .LBB2_20:                               #   in Loop: Header=BB2_1 Depth=1
-	incl	%esi
-	movl	%esi, ptr
+	inc %si
+	mov %si, ptr
 	jmp	.LBB2_1
 .LBB2_4:
 	testb	%al, %al
@@ -145,94 +145,93 @@ read:                                   # @read
 	cmpb	$41, %al
 	jne	.LBB2_7
 # %bb.21:
-	incl	%esi
-	movl	%esi, ptr
+	inc %si
+	mov %si, ptr
 .LBB2_22:                               # %.loopexit
-	xorl	%eax, %eax
+	xor %ax, %ax
 	jmp	.LBB2_23
 .LBB2_12:
-	movb	$8, %bl
+	mov $8, %bl
 	#APP
-	movl	memptr, %esi
-	addb	%bl, memptr
+	mov memptr, %si
+	add %bl, memptr
 	#NO_APP
-	incl	ptr
-	calll	read
-	movl	%esi, %edi
-	movl	%eax, 4(%esi)
+	incw ptr
+	call read
+	mov %si, %di
+	mov %ax, 4(%si)
 .LBB2_13:                               # =>This Inner Loop Header: Depth=1
-	calll	read
-	testl	%eax, %eax
+	call	read
+	test	%ax, %ax
 	je	.LBB2_15
 # %bb.14:                               #   in Loop: Header=BB2_13 Depth=1
 	#APP
-	movl	memptr, %ecx
-	addb	%bl, memptr
+	mov	memptr, %bx
+	add	%bl, memptr
 	#NO_APP
-	movl	%ecx, (%edi)
-	movl	%eax, 4(%ecx)
-	movl	%ecx, %edi
+	mov	%bx, (%di)
+	mov	%ax, 4(%bx)
+	mov	%bx, %di
 	jmp	.LBB2_13
 .LBB2_7:
-	xorl	%ecx, %ecx
-	movl	$134218497, %eax                # imm = 0x8000301
-	incl	%ecx
+	xor %bx, %bx
+	mov $134218497, %eax                # imm = 0x8000301
+	inc %bx
 .LBB2_8:                                # =>This Inner Loop Header: Depth=1
-	movb	(%esi,%ecx), %dl
-	movb	%dl, %dh
-	addb	$-32, %dh
-	cmpb	$27, %dh
-	ja	.LBB2_9
+	mov (%bx,%si), %dl
+	mov %dl, %dh
+	add $-32, %dh
+	cmp $27, %dh
+	ja .LBB2_9
 # %bb.16:                               #   in Loop: Header=BB2_8 Depth=1
-	movzbl	%dh, %edi
-	btl	%edi, %eax
-	jae	.LBB2_9
+	movzbw %dh, %di
+	btl %edi, %eax
+	jae .LBB2_9
 .LBB2_17:                               #   in Loop: Header=BB2_8 Depth=1
-	incl	%ecx
-	jmp	.LBB2_8
+	inc %bx
+	jmp .LBB2_8
 .LBB2_9:                                #   in Loop: Header=BB2_8 Depth=1
-	cmpb	$10, %dl
-	je	.LBB2_17
+	cmpb $10, %dl
+	je .LBB2_17
 # %bb.10:                               #   in Loop: Header=BB2_8 Depth=1
-	testb	%dl, %dl
-	je	.LBB2_17
+	test %dl, %dl
+	je .LBB2_17
 # %bb.11:
-	leal	(%esi,%ecx), %eax
-	xorl	%edx, %edx
-	movl	%eax, ptr
-	movl	%ecx, %eax
-	incb	%al
+	lea (%bx,%si), %ax
+	xor %dx, %dx
+	mov %ax, ptr
+	mov %bx, %ax
+	inc %al
 	#APP
-	movl	memptr, %edi
-	addb	%al, memptr
+	mov memptr, %di
+	add %al, memptr
 	#NO_APP
 	#APP
-	rep		movsb	(%si), %es:(%di)
-
+	rep movsb	%ds:(%si), %es:(%di)
 	#NO_APP
-	movb	%dl, (%edi,%ecx)
-	movb	$5, %al
+	mov %dl, (%bx,%di)
+	mov $5, %al
 	#APP
-	movl	memptr, %eax
-	addb	%al, memptr
+	mov memptr, %ax
+	add %al, memptr
 	#NO_APP
-	movb	%dl, 4(%eax)
-	movl	%edi, (%eax)
+	movb %dl, 4(%eax)
+	movw %di, (%eax)
 	jmp	.LBB2_23
 .LBB2_15:
-	andl	$0, (%edi)
-	movb	$5, %al
+	andw $0, (%di)
+	mov $5, %al
 	#APP
-	movl	memptr, %eax
-	addb	%al, memptr
+	mov memptr, %ax
+	add %al, memptr
 	#NO_APP
-	movb	$1, 4(%eax)
-	movl	%esi, (%eax)
+	movb $1, 4(%eax)
+	mov %si, (%eax)
 .LBB2_23:
-	popl	%esi
-	popl	%edi
-	popl	%ebx
-	retl
+	pop %si
+	pop %di
+	pop %cx
+	ret
 .Lfunc_end2:
 	.size	read, .Lfunc_end2-read
                                         # -- End function
@@ -240,17 +239,17 @@ read:                                   # @read
 	.data
 	.p2align	2
 ptr:
-	.long	32256
-	.size	ptr, 4
+	.word	32256
+	.size	ptr, 2
 
 	.type	nil,@object                     # @nil
 	.section	.rodata,"a",@progbits
 	.p2align	2
 nil:
-	.long	0
-	.long	.L.str
-	.long	0
-	.size	nil, 12
+	.word	0
+	.word	.L.str
+	.word	0
+	.size	nil, 6
 
 	.type	.L.str,@object                  # @.str
 	.section	.rodata.str1.1,"aMS",@progbits,1
@@ -262,8 +261,8 @@ nil:
 	.data
 	.p2align	2
 memptr:
-	.long	1280
-	.size	memptr, 4
+	.word	1280
+	.size	memptr, 2
 
 	.ident	"clang version 11.1.0"
 	.section	".note.GNU-stack","",@progbits
